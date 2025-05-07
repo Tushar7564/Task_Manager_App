@@ -1,0 +1,14 @@
+# Node modules
+**/node_modules
+
+# Logs
+*.log
+
+# dotenv files
+**/.env
+
+# Vite build
+**/dist
+
+# Misc
+.DS_Store
