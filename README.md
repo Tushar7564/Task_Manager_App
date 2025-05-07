@@ -11,8 +11,8 @@ A full-stack task manager built with:
 
 ## Folder Structure
 Task_Manager_App/
-├── task_manager/ ← React (Vite)    (Frontend)
-├── TM_Backend/ ← Node.js / Express (Backend)
+- task_manager/ ← React (Vite)    (Frontend)
+- TM_Backend/ ← Node.js / Express (Backend)
 
 ## How to Run Locally
 1. `cd TM_Backend` → `npm install` → `node index.js`
