@@ -4,6 +4,7 @@ import TaskForm from "../components/TaskForm.jsx";
 import TaskList from "../components/TaskList.jsx";
 import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
+import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
 import {
   fetchTasks,
   createTask,
@@ -17,6 +18,47 @@ export default function TaskPage() {
   const [error, setError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("newest");
+
+  const counts = {
+    all: tasks.length,
+    active: tasks.filter((t) => !t.is_completed).length,
+    completed: tasks.filter((t) => t.is_completed).length,
+  };
+
+  const visibleTasks = (() => {
+    const q = search.trim().toLowerCase();
+
+    let list = [...tasks];
+
+    // filter
+    if (filter === "active") list = list.filter((t) => !t.is_completed);
+    if (filter === "completed") list = list.filter((t) => t.is_completed);
+
+    // search
+    if (q) list = list.filter((t) => (t.title || "").toLowerCase().includes(q));
+
+    // sort
+    switch (sort) {
+      case "oldest":
+        list.sort((a, b) => a.id - b.id);
+        break;
+      case "title_asc":
+        list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        break;
+      case "completed_last":
+        list.sort((a, b) => Number(a.is_completed) - Number(b.is_completed));
+        break;
+      case "newest":
+      default:
+        list.sort((a, b) => b.id - a.id);
+        break;
+    }
+
+    return list;
+  })();
 
   async function load() {
     try {
@@ -102,7 +144,7 @@ export default function TaskPage() {
     }
   }
 
-  const isEmpty = !loading && !error && tasks.length === 0;
+  const isEmpty = !loading && !error && visibleTasks.length === 0;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -122,13 +164,23 @@ export default function TaskPage() {
 
       {isEmpty && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600">
-          No tasks yet. Add your first task above.
+          No tasks match your current filter/search.
         </div>
       )}
 
-      {!loading && !error && tasks.length > 0 && (
+      <TaskToolbar
+        filter={filter}
+        setFilter={setFilter}
+        search={search}
+        setSearch={setSearch}
+        sort={sort}
+        setSort={setSort}
+        counts={counts}
+      />
+
+      {!loading && !error && visibleTasks.length > 0 && (
         <TaskList
-          tasks={tasks}
+          tasks={visibleTasks}
           onToggle={handleToggle}
           onDelete={(task) => setDeleteTask(task)}
           onEdit={(task) => setEditingTask(task)}
