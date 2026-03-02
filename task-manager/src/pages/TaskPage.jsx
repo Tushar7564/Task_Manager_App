@@ -12,15 +12,36 @@ import {
   deleteTask,
 } from "../api/tasksApi.js";
 
+const UI_KEY = "tm_ui_v1";
+
+function loadUI() {
+  try {
+    const raw = localStorage.getItem(UI_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveUI(ui) {
+  try {
+    localStorage.setItem(UI_KEY, JSON.stringify(ui));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
-  const [filter, setFilter] = useState("all");
+  const savedUI = loadUI();
+
+  const [filter, setFilter] = useState(savedUI?.filter ?? "all");
+  const [sort, setSort] = useState(savedUI?.sort ?? "newest");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("newest");
 
   const counts = {
     all: tasks.length,
@@ -76,6 +97,10 @@ export default function TaskPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    saveUI({ filter, sort });
+  }, [filter, sort]);
 
   // CREATE
   async function handleCreate(payload) {
