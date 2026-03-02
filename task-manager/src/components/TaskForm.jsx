@@ -9,9 +9,13 @@ export default function TaskForm({ onCreate }) {
     const cleanTitle = title.trim();
     if (cleanTitle.length < 2) return;
 
-    await onCreate({ title: cleanTitle, description: description.trim() });
-    setTitle("");
-    setDescription("");
+    try {
+      await onCreate({ title: cleanTitle, description: description.trim() });
+      setTitle("");
+      setDescription("");
+    } catch (err) {
+      // error toast already shown in TaskPage; just prevent uncaught promise
+    }
   }
 
   return (
@@ -20,15 +24,20 @@ export default function TaskForm({ onCreate }) {
         className="w-full rounded-lg border p-2"
         placeholder="Title"
         value={title}
+        required
         onChange={(e) => setTitle(e.target.value)}
       />
       <input
         className="w-full rounded-lg border p-2"
-        placeholder="Description (optional)"
+        placeholder="Description"
         value={description}
+        required
         onChange={(e) => setDescription(e.target.value)}
       />
-      <button className="rounded-lg bg-black px-4 py-2 text-white" type="submit">
+      <button
+        className="rounded-lg bg-black px-4 py-2 text-white"
+        type="submit"
+      >
         Add Task
       </button>
     </form>

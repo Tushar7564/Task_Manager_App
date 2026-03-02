@@ -24,55 +24,49 @@ router.get('/', async(req, res) => {
 });
 
 // Define POST route to add a new task
-router.post('/', async(req, res) => {
-    const { title, description, is_completed } = req.body;
+router.post('/', async (req, res) => {
+  const { title, description = "", is_completed = false } = req.body;
 
-    // Validate input
-    if(!title || !description) {
-        return res.status(400).json({ error: 'Title and Description are required' });
-    }
+  if (!title || title.trim().length < 2) {
+    return res.status(400).json({ message: 'Title must be at least 2 characters.' });
+  }
 
-    try {
-        // Insert the new task into the database
-        const result = await db.query(
-            'INSERT INTO tasks (title, description, is_completed) VALUES ($1, $2, $3) RETURNING *',
-            [title, description, is_completed || false]
-        );
+  try {
+    const result = await db.query(
+      'INSERT INTO tasks (title, description, is_completed) VALUES ($1, $2, $3) RETURNING *',
+      [title.trim(), description.trim(), !!is_completed]
+    );
 
-        // Send the newly created task as response
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.log('Error adding task:', err);
-        res.status(500).json({ error: 'Failed to add task' });
-    }
+    return res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error adding task:', err);
+    return res.status(500).json({ message: 'Failed to add task' });
+  }
 });
 
-router.put('/:id', async(req, res) => {
-    const { id } = req.params;
-    const { title, description, is_completed } = req.body;
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, description = "", is_completed = false } = req.body;
 
-    // Validate input
-    if (!title || !description) {
-        return res.status(400).json({ error: 'Title and description are required' });
+  if (!title || title.trim().length < 2) {
+    return res.status(400).json({ message: 'Title must be at least 2 characters.' });
+  }
+
+  try {
+    const result = await db.query(
+      'UPDATE tasks SET title = $1, description = $2, is_completed = $3 WHERE id = $4 RETURNING *',
+      [title.trim(), description.trim(), !!is_completed, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Task not found' });
     }
 
-    try {
-        // Update the task in the database
-        const result = await db.query(
-            'UPDATE tasks SET title = $1, description = $2, is_completed = $3 WHERE id = $4 RETURNING *',
-            [title, description, is_completed, id]
-        );
-
-        if(result.rows.length === 0) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-
-        // Send the updated task as response
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error('Error updating task:', err);
-        res.status(500).json({ error: 'Failed to update task' });
-    }
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating task:', err);
+    return res.status(500).json({ message: 'Failed to update task' });
+  }
 });
 
 router.delete('/:id', async(req, res) => {

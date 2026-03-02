@@ -36,11 +36,9 @@ export default function TaskPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
-  const [deleteTask, setDeleteTask] = useState(null);
-  const savedUI = loadUI();
-
-  const [filter, setFilter] = useState(savedUI?.filter ?? "all");
-  const [sort, setSort] = useState(savedUI?.sort ?? "newest");
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [filter, setFilter] = useState(() => loadUI()?.filter ?? "all");
+  const [sort, setSort] = useState(() => loadUI()?.sort ?? "newest");
   const [search, setSearch] = useState("");
 
   const counts = {
@@ -207,7 +205,7 @@ export default function TaskPage() {
         <TaskList
           tasks={visibleTasks}
           onToggle={handleToggle}
-          onDelete={(task) => setDeleteTask(task)}
+          onDelete={(task) => setTaskToDelete(task)}
           onEdit={(task) => setEditingTask(task)}
         />
       )}
@@ -229,12 +227,12 @@ export default function TaskPage() {
       )}
 
       <ConfirmDeleteModal
-        isOpen={!!deleteTask}
-        taskTitle={deleteTask?.title}
-        onCancel={() => setDeleteTask(null)}
+        isOpen={!!taskToDelete}
+        taskTitle={taskToDelete?.title}
+        onCancel={() => setTaskToDelete(null)}
         onConfirm={async () => {
-          await handleDelete(deleteTask);
-          setDeleteTask(null);
+          await handleDelete(taskToDelete);
+          setTaskToDelete(null);
         }}
       />
     </div>
