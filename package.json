@@ -1,0 +1,7 @@
+{
+  "name": "task-manager-fullstack",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix TM_Backend run start & npm --prefix task-manager run dev"
+  }
+}
