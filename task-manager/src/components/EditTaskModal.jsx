@@ -1,44 +1,51 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-const EditTaskModal = ({ task, isOpen, onClose, onSave }) => {
+export default function EditTaskModal({ task, onClose, onSave }) {
   const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description);
+  const [description, setDescription] = useState(task.description || "");
 
-  const handleSubmit = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    onSave({ ...task, title, description });
-  };
+    const cleanTitle = title.trim();
+    if (cleanTitle.length < 2) return;
 
-  if (!isOpen) return null;
+    await onSave({
+      title: cleanTitle,
+      description: description.trim(),
+      is_completed: task.is_completed,
+    });
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl mb-4 font-semibold">Edit Task</h2>
-        <form onSubmit={handleSubmit}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h2 className="mb-4 text-lg font-semibold">Edit Task</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
           <input
-            className="w-full border p-2 mb-2"
+            className="w-full rounded-lg border p-2"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            required
           />
-          <textarea
-            className="w-full border p-2 mb-2"
+
+          <input
+            className="w-full rounded-lg border p-2"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
           />
-          <div className="flex justify-end">
+
+          <div className="flex justify-end gap-2 pt-2">
             <button
-              className="mr-2 text-gray-500"
               type="button"
+              className="rounded-lg border px-4 py-2"
               onClick={onClose}
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
+              className="rounded-lg bg-black px-4 py-2 text-white"
             >
               Save
             </button>
@@ -47,6 +54,4 @@ const EditTaskModal = ({ task, isOpen, onClose, onSave }) => {
       </div>
     </div>
   );
-};
-
-export default EditTaskModal;
+}

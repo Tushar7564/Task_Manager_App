@@ -2,12 +2,21 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import TaskForm from "../components/TaskForm.jsx";
 import TaskList from "../components/TaskList.jsx";
-import { fetchTasks, createTask, updateTask, deleteTask } from "../api/tasksApi.js";
+import EditTaskModal from "../components/EditTaskModal.jsx";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
+import {
+  fetchTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../api/tasksApi.js";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
+  const [deleteTask, setDeleteTask] = useState(null);
 
   async function load() {
     try {
@@ -55,7 +64,9 @@ export default function TaskPage() {
     const nextCompleted = !task.is_completed;
 
     setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, is_completed: nextCompleted } : t))
+      prev.map((t) =>
+        t.id === task.id ? { ...t, is_completed: nextCompleted } : t,
+      ),
     );
 
     try {
@@ -69,7 +80,9 @@ export default function TaskPage() {
     } catch (e) {
       // rollback
       setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, is_completed: task.is_completed } : t))
+        prev.map((t) =>
+          t.id === task.id ? { ...t, is_completed: task.is_completed } : t,
+        ),
       );
       toast.error(e?.response?.data?.message || "Failed to toggle task.");
     }
@@ -117,10 +130,36 @@ export default function TaskPage() {
         <TaskList
           tasks={tasks}
           onToggle={handleToggle}
-          onDelete={handleDelete}
-          onUpdate={handleUpdate}
+          onDelete={(task) => setDeleteTask(task)}
+          onEdit={(task) => setEditingTask(task)}
         />
       )}
+
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={async (updatedTask) => {
+            await handleUpdate(editingTask.id, {
+              title: updatedTask.title,
+              description: updatedTask.description ?? "",
+              is_completed: editingTask.is_completed,
+            });
+            setEditingTask(null);
+          }}
+        />
+      )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTask}
+        taskTitle={deleteTask?.title}
+        onCancel={() => setDeleteTask(null)}
+        onConfirm={async () => {
+          await handleDelete(deleteTask);
+          setDeleteTask(null);
+        }}
+      />
     </div>
   );
 }

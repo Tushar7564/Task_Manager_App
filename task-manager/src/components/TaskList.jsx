@@ -1,6 +1,6 @@
 import TaskItem from "./TaskItem.jsx";
 
-export default function TaskList({ tasks, onToggle, onDelete, onUpdate }) {
+export default function TaskList({ tasks, onToggle, onDelete, onEdit }) {
   return (
     <div className="mt-4 space-y-3">
       {tasks.map((task) => (
@@ -9,7 +9,7 @@ export default function TaskList({ tasks, onToggle, onDelete, onUpdate }) {
           task={task}
           onToggle={() => onToggle(task)}
           onDelete={() => onDelete(task)}
-          onUpdate={onUpdate}
+          onEdit={() => onEdit(task)}
         />
       ))}
     </div>
