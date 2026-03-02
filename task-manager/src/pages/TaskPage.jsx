@@ -150,6 +150,16 @@ export default function TaskPage() {
     <div className="mx-auto max-w-2xl">
       <TaskForm onCreate={handleCreate} />
 
+      <TaskToolbar
+        filter={filter}
+        setFilter={setFilter}
+        search={search}
+        setSearch={setSearch}
+        sort={sort}
+        setSort={setSort}
+        counts={counts}
+      />
+
       {loading && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
           Loading tasks…
@@ -167,16 +177,6 @@ export default function TaskPage() {
           No tasks match your current filter/search.
         </div>
       )}
-
-      <TaskToolbar
-        filter={filter}
-        setFilter={setFilter}
-        search={search}
-        setSearch={setSearch}
-        sort={sort}
-        setSort={setSort}
-        counts={counts}
-      />
 
       {!loading && !error && visibleTasks.length > 0 && (
         <TaskList
