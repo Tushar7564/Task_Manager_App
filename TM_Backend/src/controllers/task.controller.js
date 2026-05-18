@@ -8,7 +8,7 @@ import {
 
 export const getTasksController = async (req, res, next) => {
   try {
-    const tasks = await getAllTasks();
+    const tasks = await getAllTasks(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -31,6 +31,7 @@ export const createTaskController = async (req, res, next) => {
       title,
       description: description || "",
       is_completed,
+      userId: req.user.id,
     });
 
     res.status(201).json({
@@ -48,14 +49,15 @@ export const updateTaskController = async (req, res, next) => {
     const { id } = req.params;
     const { title, description, is_completed } = req.body;
 
-    if (!title || title.trim().length < 2) {
-      throw new ApiError(400, "Title must be at least 2 characters.");
+    if (!title?.trim()) {
+      throw new ApiError(400, "Task title is required");
     }
 
     const task = await updateTask(id, {
       title,
       description: description || "",
       is_completed,
+      userId: req.user.id,
     });
 
     if (!task) {
@@ -74,9 +76,7 @@ export const updateTaskController = async (req, res, next) => {
 
 export const deleteTaskController = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const task = await deleteTask(id);
+    const task = await deleteTask(req.params.id, req.user.id);
 
     if (!task) {
       throw new ApiError(404, "Task not found");
