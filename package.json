@@ -3,5 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix TM_Backend run start & npm --prefix task-manager run dev"
+  },
+  "dependencies": {
+    "postgresql": "^0.0.1"
   }
 }

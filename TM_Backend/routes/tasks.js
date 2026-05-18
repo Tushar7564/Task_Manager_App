@@ -9,9 +9,7 @@ router.get('/', async(req, res) => {
         const result = await db.query('SELECT * FROM tasks ORDER BY created_at DESC');
 
         // Send back the rows of tasks as JSON
-        if(result.rows.length === 0) {
-            return res.status(404).json({ error: 'No tasks found' });
-        }
+        return res.status(200).json(result.rows);
 
         res.json(result.rows);
     } catch (err) {
