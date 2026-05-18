@@ -31,7 +31,6 @@ export default function TaskForm({ onCreate }) {
         className="w-full rounded-lg border p-2"
         placeholder="Description"
         value={description}
-        required
         onChange={(e) => setDescription(e.target.value)}
       />
       <button
