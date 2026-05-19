@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import TaskForm from "../components/TaskForm.jsx";
 import TaskList from "../components/TaskList.jsx";
@@ -43,9 +43,11 @@ export default function TaskPage() {
   const [error, setError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [filter, setFilter] = useState(() => loadUI()?.filter ?? "all");
   const [sort, setSort] = useState(() => loadUI()?.sort ?? "newest");
   const [search, setSearch] = useState("");
+  const loadErrorToastShown = useRef(false);
 
   const counts = {
     all: tasks.length,
@@ -92,7 +94,13 @@ export default function TaskPage() {
       const data = await getTasks();
       setTasks(data);
     } catch (e) {
-      setError(e?.response?.data?.message || "Failed to load tasks.");
+      const message = e?.response?.data?.message || "Failed to load tasks.";
+      setError(message);
+
+      if (!loadErrorToastShown.current) {
+        toast.error(message, { toastId: "load-tasks-error" });
+        loadErrorToastShown.current = true;
+      }
     } finally {
       setLoading(false);
     }
@@ -162,18 +170,21 @@ export default function TaskPage() {
     }
   }
 
-  // DELETE (optimistic)
+  // DELETE
   async function handleDelete(task) {
-    const snapshot = tasks;
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    if (!task) return;
 
     try {
+      setDeleting(true);
       await deleteTask(task.id);
       setError("");
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
+      setTaskToDelete(null);
       toast.success("Task deleted");
     } catch (e) {
-      setTasks(snapshot);
       toast.error(e?.response?.data?.message || "Failed to delete task.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -239,10 +250,10 @@ export default function TaskPage() {
       <ConfirmDeleteModal
         isOpen={!!taskToDelete}
         taskTitle={taskToDelete?.title}
+        deleting={deleting}
         onCancel={() => setTaskToDelete(null)}
         onConfirm={async () => {
           await handleDelete(taskToDelete);
-          setTaskToDelete(null);
         }}
       />
     </div>

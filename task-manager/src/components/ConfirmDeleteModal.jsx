@@ -3,6 +3,7 @@ export default function ConfirmDeleteModal({
   taskTitle,
   onCancel,
   onConfirm,
+  deleting = false,
 }) {
   if (!isOpen) return null;
 
@@ -22,6 +23,7 @@ export default function ConfirmDeleteModal({
           <button
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
             onClick={onCancel}
+            disabled={deleting}
           >
             Cancel
           </button>
@@ -29,8 +31,9 @@ export default function ConfirmDeleteModal({
           <button
             className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
             onClick={onConfirm}
+            disabled={deleting}
           >
-            Delete
+            {deleting ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>
