@@ -12,7 +12,7 @@ export default function EditTaskModal({ task, onClose, onSave }) {
     await onSave({
       title: cleanTitle,
       description: description.trim(),
-      is_completed: task.is_completed,
+      completed: task.completed,
     });
   }
 

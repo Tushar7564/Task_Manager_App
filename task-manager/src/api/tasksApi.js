@@ -1,31 +1,39 @@
-import axios from "axios";
+import api from "./axios";
 
-// Vite proxy handles /tasks -> http://localhost:8080/tasks
-const http = axios.create({
-  baseURL: "",
-  headers: { "Content-Type": "application/json" },
+const normalizeTask = (task) => ({
+  ...task,
+  completed: Boolean(task.completed ?? task.is_completed),
 });
 
-function unwrap(res) {
-  return res.data?.data ?? res.data;
-}
+const normalizeTasks = (tasks) => tasks.map(normalizeTask);
 
-export async function fetchTasks() {
-  const res = await http.get("/tasks");
-  return unwrap(res);
-}
+const toBackendTaskPayload = (taskData) => {
+  const payload = { ...taskData };
 
-export async function createTask(payload) {
-  const res = await http.post("/tasks", payload);
-  return unwrap(res);
-}
+  if ("completed" in payload) {
+    payload.is_completed = payload.completed;
+    delete payload.completed;
+  }
 
-export async function updateTask(id, payload) {
-  const res = await http.put(`/tasks/${id}`, payload);
-  return unwrap(res);
-}
+  return payload;
+};
 
-export async function deleteTask(id) {
-  const res = await http.delete(`/tasks/${id}`);
-  return unwrap(res);
-}
+export const getTasks = async () => {
+  const response = await api.get("/tasks");
+  return normalizeTasks(response.data.data);
+};
+
+export const createTask = async (taskData) => {
+  const response = await api.post("/tasks", toBackendTaskPayload(taskData));
+  return normalizeTask(response.data.data);
+};
+
+export const updateTask = async (id, taskData) => {
+  const response = await api.put(`/tasks/${id}`, toBackendTaskPayload(taskData));
+  return normalizeTask(response.data.data);
+};
+
+export const deleteTask = async (id) => {
+  const response = await api.delete(`/tasks/${id}`);
+  return normalizeTask(response.data.data);
+};

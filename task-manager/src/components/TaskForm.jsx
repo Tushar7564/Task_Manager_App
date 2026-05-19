@@ -13,7 +13,7 @@ export default function TaskForm({ onCreate }) {
       await onCreate({ title: cleanTitle, description: description.trim() });
       setTitle("");
       setDescription("");
-    } catch (err) {
+    } catch {
       // error toast already shown in TaskPage; just prevent uncaught promise
     }
   }
@@ -21,14 +21,14 @@ export default function TaskForm({ onCreate }) {
   return (
     <form onSubmit={submit} className="space-y-3">
       <input
-        className="w-full rounded-lg border p-2"
+        className="w-full rounded-lg border p-2 text-slate-900 placeholder:text-slate-400"
         placeholder="Title"
         value={title}
         required
         onChange={(e) => setTitle(e.target.value)}
       />
       <input
-        className="w-full rounded-lg border p-2"
+        className="w-full rounded-lg border p-2 text-slate-900 placeholder:text-slate-400"
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}

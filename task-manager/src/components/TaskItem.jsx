@@ -6,7 +6,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
           <button
             onClick={onToggle}
             className={`mt-1 h-5 w-5 rounded-md border transition
-          ${task.is_completed ? "bg-slate-900 border-slate-900" : "bg-white border-slate-300 hover:border-slate-400"}
+          ${task.completed ? "bg-slate-900 border-slate-900" : "bg-white border-slate-300 hover:border-slate-400"}
         `}
             aria-label="Toggle complete"
           />
@@ -14,20 +14,20 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
           <div>
             <div className="flex items-center gap-2">
               <h3
-                className={`text-sm font-semibold ${task.is_completed ? "text-slate-400 line-through" : "text-slate-900"}`}
+                className={`text-sm font-semibold ${task.completed ? "text-slate-400 line-through" : "text-slate-900"}`}
               >
                 {task.title}
               </h3>
-              {task.is_completed && (
+              {task.completed && (
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                  Completed
+                  completed
                 </span>
               )}
             </div>
 
             {task.description ? (
               <p
-                className={`mt-1 text-sm ${task.is_completed ? "text-slate-400" : "text-slate-600"}`}
+                className={`mt-1 text-sm ${task.completed ? "text-slate-400" : "text-slate-600"}`}
               >
                 {task.description}
               </p>

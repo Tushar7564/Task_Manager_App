@@ -81,7 +81,7 @@ CREATE TABLE tasks (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  is_completed BOOLEAN DEFAULT FALSE,
+  completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
