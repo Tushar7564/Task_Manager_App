@@ -1,8 +1,9 @@
 import { useState } from "react";
 
-export default function EditTaskModal({ task, onClose, onSave }) {
+export default function EditTaskModal({ task, projects = [], onClose, onSave }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
+  const [projectId, setProjectId] = useState(task.projectId || "");
   const [priority, setPriority] = useState(task.priority || "medium");
   const [status, setStatus] = useState(task.status || "todo");
   const [dueDate, setDueDate] = useState(
@@ -32,6 +33,7 @@ export default function EditTaskModal({ task, onClose, onSave }) {
         title: cleanTitle,
         description: description.trim(),
         completed: task.completed,
+        projectId,
         priority,
         status,
         dueDate,
@@ -68,7 +70,20 @@ export default function EditTaskModal({ task, onClose, onSave }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <select
+              className="w-full rounded-lg border p-2 text-slate-900"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            >
+              <option value="">No project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+
             <select
               className="w-full rounded-lg border p-2 text-slate-900"
               value={priority}

@@ -11,6 +11,7 @@ const normalizeTask = (task) => ({
   priority: task.priority || "medium",
   status: task.status || "todo",
   dueDate: toDateInputValue(task.dueDate ?? task.due_date),
+  projectId: task.projectId ?? task.project_id ?? "",
 });
 
 const normalizeTasks = (tasks) => tasks.map(normalizeTask);
@@ -21,6 +22,10 @@ const toBackendTaskPayload = (taskData) => {
   if ("completed" in payload) {
     payload.is_completed = payload.completed;
     delete payload.completed;
+  }
+
+  if ("projectId" in payload) {
+    payload.projectId = payload.projectId || null;
   }
 
   return payload;

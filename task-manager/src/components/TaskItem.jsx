@@ -31,6 +31,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
   const status = task.status || "todo";
   const dueDate =
     task.dueDate || (task.due_date ? task.due_date.split("T")[0] : "");
+  const projectName = task.projectName || task.project?.name || "";
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -78,6 +79,11 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
               {dueDate && (
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
                   Due {formatDate(dueDate)}
+                </span>
+              )}
+              {projectName && (
+                <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                  {projectName}
                 </span>
               )}
             </div>

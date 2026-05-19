@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function TaskForm({ onCreate }) {
+export default function TaskForm({
+  onCreate,
+  projects = [],
+  selectedProjectId = "",
+}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [projectId, setProjectId] = useState(selectedProjectId);
   const [priority, setPriority] = useState("medium");
   const [status, setStatus] = useState("todo");
   const [dueDate, setDueDate] = useState("");
   const [validationError, setValidationError] = useState("");
+
+  useEffect(() => {
+    setProjectId(selectedProjectId);
+  }, [selectedProjectId]);
 
   async function submit(e) {
     e.preventDefault();
@@ -30,9 +39,11 @@ export default function TaskForm({ onCreate }) {
         priority,
         status,
         dueDate,
+        projectId,
       });
       setTitle("");
       setDescription("");
+      setProjectId(selectedProjectId);
       setPriority("medium");
       setStatus("todo");
       setDueDate("");
@@ -62,7 +73,20 @@ export default function TaskForm({ onCreate }) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
+        <select
+          className="w-full rounded-lg border p-2 text-slate-900"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+        >
+          <option value="">No project</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+
         <select
           className="w-full rounded-lg border p-2 text-slate-900"
           value={priority}

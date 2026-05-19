@@ -4,6 +4,7 @@ import TaskForm from "../components/TaskForm.jsx";
 import TaskList from "../components/TaskList.jsx";
 import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
+import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
 import {
   getTasks,
@@ -11,6 +12,7 @@ import {
   updateTask,
   deleteTask,
 } from "../api/tasksApi";
+import { getProjects, createProject } from "../api/projectsApi";
 
 const UI_KEY = "tm_ui_v1";
 
@@ -49,6 +51,7 @@ function isOverdue(task) {
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingTask, setEditingTask] = useState(null);
@@ -56,8 +59,15 @@ export default function TaskPage() {
   const [deleting, setDeleting] = useState(false);
   const [filter, setFilter] = useState(() => loadUI()?.filter ?? "all");
   const [sort, setSort] = useState(() => loadUI()?.sort ?? "newest");
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    () => loadUI()?.selectedProjectId ?? "",
+  );
   const [search, setSearch] = useState("");
   const loadErrorToastShown = useRef(false);
+
+  const projectById = new Map(
+    projects.map((project) => [String(project.id), project]),
+  );
 
   const counts = {
     all: tasks.length,
@@ -76,6 +86,10 @@ export default function TaskPage() {
     const q = search.trim().toLowerCase();
 
     let list = [...tasks];
+
+    if (selectedProjectId) {
+      list = list.filter((t) => String(t.projectId) === selectedProjectId);
+    }
 
     // filter
     if (filter === "active") list = list.filter((t) => !t.completed);
@@ -101,15 +115,22 @@ export default function TaskPage() {
         break;
     }
 
-    return list;
+    return list.map((task) => ({
+      ...task,
+      projectName: projectById.get(String(task.projectId))?.name || "",
+    }));
   })();
 
   async function load() {
     try {
       setLoading(true);
       setError("");
-      const data = await getTasks();
-      setTasks(data);
+      const [tasksData, projectsData] = await Promise.all([
+        getTasks(),
+        getProjects(),
+      ]);
+      setTasks(tasksData);
+      setProjects(projectsData);
     } catch (e) {
       const message = e?.response?.data?.message || "Failed to load tasks.";
       setError(message);
@@ -128,8 +149,18 @@ export default function TaskPage() {
   }, []);
 
   useEffect(() => {
-    saveUI({ filter, sort });
-  }, [filter, sort]);
+    saveUI({ filter, sort, selectedProjectId });
+  }, [filter, sort, selectedProjectId]);
+
+  useEffect(() => {
+    if (
+      selectedProjectId &&
+      projects.length > 0 &&
+      !projects.some((project) => String(project.id) === selectedProjectId)
+    ) {
+      setSelectedProjectId("");
+    }
+  }, [projects, selectedProjectId]);
 
   // CREATE
   async function handleCreate(payload) {
@@ -172,6 +203,7 @@ export default function TaskPage() {
         title: task.title,
         description: task.description ?? "",
         completed: nextCompleted,
+        projectId: task.projectId || "",
         priority: task.priority || "medium",
         status: task.status || "todo",
         dueDate: task.dueDate || "",
@@ -208,6 +240,18 @@ export default function TaskPage() {
     }
   }
 
+  async function handleCreateProject(payload) {
+    try {
+      const project = await createProject(payload);
+      setProjects((prev) => [...prev, project]);
+      setSelectedProjectId(String(project.id));
+      toast.success("Project added");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to add project.");
+      throw e;
+    }
+  }
+
   const isEmpty = !loading && !error && visibleTasks.length === 0;
 
   return (
@@ -239,7 +283,18 @@ export default function TaskPage() {
         </div>
       </div>
 
-      <TaskForm onCreate={handleCreate} />
+      <ProjectPanel
+        projects={projects}
+        selectedProjectId={selectedProjectId}
+        onSelectProject={setSelectedProjectId}
+        onCreateProject={handleCreateProject}
+      />
+
+      <TaskForm
+        onCreate={handleCreate}
+        projects={projects}
+        selectedProjectId={selectedProjectId}
+      />
 
       <TaskToolbar
         filter={filter}
@@ -281,6 +336,7 @@ export default function TaskPage() {
       {editingTask && (
         <EditTaskModal
           task={editingTask}
+          projects={projects}
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}
           onSave={async (updatedTask) => {
@@ -288,6 +344,7 @@ export default function TaskPage() {
               title: updatedTask.title,
               description: updatedTask.description ?? "",
               completed: editingTask.completed,
+              projectId: updatedTask.projectId,
               priority: updatedTask.priority,
               status: updatedTask.status,
               dueDate: updatedTask.dueDate,

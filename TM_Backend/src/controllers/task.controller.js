@@ -5,6 +5,7 @@ import {
   updateTask,
   deleteTask,
 } from "../services/task.service.js";
+import { getProjectById } from "../services/project.service.js";
 
 const priorities = ["low", "medium", "high"];
 const statuses = ["todo", "in_progress", "done"];
@@ -13,6 +14,7 @@ const normalizeTaskFields = ({
   priority = "medium",
   status = "todo",
   dueDate = null,
+  projectId = null,
 }) => {
   if (!priorities.includes(priority)) {
     throw new ApiError(400, "Priority must be low, medium, or high");
@@ -26,7 +28,20 @@ const normalizeTaskFields = ({
     priority,
     status,
     dueDate: dueDate || null,
+    projectId: projectId || null,
   };
+};
+
+const ensureOwnedProject = async (projectId, userId) => {
+  if (!projectId) return null;
+
+  const project = await getProjectById(projectId, userId);
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
+
+  return project.id;
 };
 
 export const getTasksController = async (req, res, next) => {
@@ -45,11 +60,14 @@ export const getTasksController = async (req, res, next) => {
 export const createTaskController = async (req, res, next) => {
   try {
     const { title, description, is_completed = false } = req.body;
-    const { priority, status, dueDate } = normalizeTaskFields(req.body);
+    const { priority, status, dueDate, projectId } =
+      normalizeTaskFields(req.body);
 
     if (!title?.trim()) {
       throw new ApiError(400, "Task title is required");
     }
+
+    const ownedProjectId = await ensureOwnedProject(projectId, req.user.id);
 
     const task = await createTask({
       title,
@@ -58,6 +76,7 @@ export const createTaskController = async (req, res, next) => {
       priority,
       status,
       dueDate,
+      projectId: ownedProjectId,
       userId: req.user.id,
     });
 
@@ -75,11 +94,14 @@ export const updateTaskController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, description, is_completed } = req.body;
-    const { priority, status, dueDate } = normalizeTaskFields(req.body);
+    const { priority, status, dueDate, projectId } =
+      normalizeTaskFields(req.body);
 
     if (!title?.trim()) {
       throw new ApiError(400, "Task title is required");
     }
+
+    const ownedProjectId = await ensureOwnedProject(projectId, req.user.id);
 
     const task = await updateTask(id, {
       title,
@@ -88,6 +110,7 @@ export const updateTaskController = async (req, res, next) => {
       priority,
       status,
       dueDate,
+      projectId: ownedProjectId,
       userId: req.user.id,
     });
 
