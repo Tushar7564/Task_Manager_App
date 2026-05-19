@@ -3,6 +3,11 @@ import { useState } from "react";
 export default function EditTaskModal({ task, onClose, onSave }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
+  const [priority, setPriority] = useState(task.priority || "medium");
+  const [status, setStatus] = useState(task.status || "todo");
+  const [dueDate, setDueDate] = useState(
+    task.due_date ? task.due_date.split("T")[0] : task.dueDate || "",
+  );
   const [validationError, setValidationError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -27,6 +32,9 @@ export default function EditTaskModal({ task, onClose, onSave }) {
         title: cleanTitle,
         description: description.trim(),
         completed: task.completed,
+        priority,
+        status,
+        dueDate,
       });
     } finally {
       setSaving(false);
@@ -36,7 +44,9 @@ export default function EditTaskModal({ task, onClose, onSave }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900 placeholder:text-slate-400">Edit Task</h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+          Edit Task
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -58,6 +68,34 @@ export default function EditTaskModal({ task, onClose, onSave }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <select
+              className="w-full rounded-lg border p-2 text-slate-900"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              <option value="low">Low priority</option>
+              <option value="medium">Medium priority</option>
+              <option value="high">High priority</option>
+            </select>
+
+            <select
+              className="w-full rounded-lg border p-2 text-slate-900"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="todo">To do</option>
+              <option value="in_progress">In progress</option>
+              <option value="done">Done</option>
+            </select>
+
+            <input
+              className="w-full rounded-lg border p-2 text-slate-900"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <button

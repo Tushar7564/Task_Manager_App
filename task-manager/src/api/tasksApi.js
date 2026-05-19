@@ -1,8 +1,16 @@
 import api from "./axios";
 
+const toDateInputValue = (value) => {
+  if (!value) return "";
+  return String(value).split("T")[0];
+};
+
 const normalizeTask = (task) => ({
   ...task,
   completed: Boolean(task.completed ?? task.is_completed),
+  priority: task.priority || "medium",
+  status: task.status || "todo",
+  dueDate: toDateInputValue(task.dueDate ?? task.due_date),
 });
 
 const normalizeTasks = (tasks) => tasks.map(normalizeTask);

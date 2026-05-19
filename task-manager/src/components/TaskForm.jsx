@@ -3,6 +3,9 @@ import { useState } from "react";
 export default function TaskForm({ onCreate }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [status, setStatus] = useState("todo");
+  const [dueDate, setDueDate] = useState("");
   const [validationError, setValidationError] = useState("");
 
   async function submit(e) {
@@ -21,9 +24,18 @@ export default function TaskForm({ onCreate }) {
 
     try {
       setValidationError("");
-      await onCreate({ title: cleanTitle, description: description.trim() });
+      await onCreate({
+        title: cleanTitle,
+        description: description.trim(),
+        priority,
+        status,
+        dueDate,
+      });
       setTitle("");
       setDescription("");
+      setPriority("medium");
+      setStatus("todo");
+      setDueDate("");
     } catch {
       // error toast already shown in TaskPage; just prevent uncaught promise
     }
@@ -50,6 +62,34 @@ export default function TaskForm({ onCreate }) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <select
+          className="w-full rounded-lg border p-2 text-slate-900"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+        >
+          <option value="low">Low priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="high">High priority</option>
+        </select>
+
+        <select
+          className="w-full rounded-lg border p-2 text-slate-900"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="todo">To do</option>
+          <option value="in_progress">In progress</option>
+          <option value="done">Done</option>
+        </select>
+
+        <input
+          className="w-full rounded-lg border p-2 text-slate-900"
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+      </div>
       <button
         className="rounded-lg bg-black px-4 py-2 text-white"
         type="submit"

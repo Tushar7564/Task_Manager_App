@@ -1,4 +1,37 @@
+const priorityLabels = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
+const priorityClasses = {
+  low: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  medium: "bg-amber-50 text-amber-700 border-amber-200",
+  high: "bg-red-50 text-red-700 border-red-200",
+};
+
+const statusLabels = {
+  todo: "To do",
+  in_progress: "In progress",
+  done: "Done",
+};
+
+function formatDate(value) {
+  if (!value) return "";
+
+  return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
+  const priority = task.priority || "medium";
+  const status = task.status || "todo";
+  const dueDate =
+    task.dueDate || (task.due_date ? task.due_date.split("T")[0] : "");
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -32,6 +65,22 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
                 {task.description}
               </p>
             ) : null}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span
+                className={`rounded-full border px-2 py-0.5 text-xs font-medium ${priorityClasses[priority] || priorityClasses.medium}`}
+              >
+                {priorityLabels[priority] || priorityLabels.medium} priority
+              </span>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                {statusLabels[status] || statusLabels.todo}
+              </span>
+              {dueDate && (
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  Due {formatDate(dueDate)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

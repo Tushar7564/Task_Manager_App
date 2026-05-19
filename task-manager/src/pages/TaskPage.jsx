@@ -37,6 +37,16 @@ function saveUI(ui) {
   }
 }
 
+function isOverdue(task) {
+  if (!task.dueDate || task.completed) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dueDate = new Date(`${task.dueDate}T00:00:00`);
+  return dueDate < today;
+}
+
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +63,13 @@ export default function TaskPage() {
     all: tasks.length,
     active: tasks.filter((t) => !t.completed).length,
     completed: tasks.filter((t) => t.completed).length,
+  };
+
+  const summaryStats = {
+    total: tasks.length,
+    completed: counts.completed,
+    highPriority: tasks.filter((t) => t.priority === "high").length,
+    overdue: tasks.filter(isOverdue).length,
   };
 
   const visibleTasks = (() => {
@@ -117,7 +134,7 @@ export default function TaskPage() {
   // CREATE
   async function handleCreate(payload) {
     try {
-      const created = await createTask(payload);
+      const created = await createTask({ ...payload, completed: false });
       setError("");
       setTasks((prev) => [created, ...prev]);
       toast.success("Task added");
@@ -155,6 +172,9 @@ export default function TaskPage() {
         title: task.title,
         description: task.description ?? "",
         completed: nextCompleted,
+        priority: task.priority || "medium",
+        status: task.status || "todo",
+        dueDate: task.dueDate || "",
       });
 
       setError("");
@@ -192,6 +212,33 @@ export default function TaskPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="mb-4 grid gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">Total</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">
+            {summaryStats.total}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">Completed</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">
+            {summaryStats.completed}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">High Priority</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">
+            {summaryStats.highPriority}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">Overdue</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">
+            {summaryStats.overdue}
+          </p>
+        </div>
+      </div>
+
       <TaskForm onCreate={handleCreate} />
 
       <TaskToolbar
@@ -241,6 +288,9 @@ export default function TaskPage() {
               title: updatedTask.title,
               description: updatedTask.description ?? "",
               completed: editingTask.completed,
+              priority: updatedTask.priority,
+              status: updatedTask.status,
+              dueDate: updatedTask.dueDate,
             });
             setEditingTask(null);
           }}
