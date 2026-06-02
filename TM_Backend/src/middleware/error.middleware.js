@@ -1,7 +1,9 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error("FULL ERROR:", err);
-
   const statusCode = err.statusCode || 500;
+
+  if (statusCode >= 500) {
+    console.error("FULL ERROR:", err);
+  }
 
   res.status(statusCode).json({
     success: false,

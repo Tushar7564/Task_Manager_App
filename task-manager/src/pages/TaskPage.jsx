@@ -6,6 +6,7 @@ import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   getTasks,
   createTask,
@@ -50,6 +51,7 @@ function isOverdue(task) {
 }
 
 export default function TaskPage() {
+  const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,8 +147,13 @@ export default function TaskPage() {
   }
 
   useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     load();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     saveUI({ filter, sort, selectedProjectId });
