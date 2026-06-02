@@ -13,7 +13,12 @@ import {
   updateTask,
   deleteTask,
 } from "../api/tasksApi";
-import { getProjects, createProject } from "../api/projectsApi";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "../api/projectsApi";
 
 const UI_KEY = "tm_ui_v1";
 
@@ -259,6 +264,44 @@ export default function TaskPage() {
     }
   }
 
+  async function handleUpdateProject(id, payload) {
+    try {
+      const updatedProject = await updateProject(id, payload);
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === updatedProject.id ? updatedProject : project,
+        ),
+      );
+      toast.success("Project updated");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to update project.");
+      throw e;
+    }
+  }
+
+  async function handleDeleteProject(project) {
+    try {
+      await deleteProject(project.id);
+      setProjects((prev) => prev.filter((item) => item.id !== project.id));
+      setTasks((prev) =>
+        prev.map((task) =>
+          String(task.projectId) === String(project.id)
+            ? { ...task, projectId: "" }
+            : task,
+        ),
+      );
+
+      if (selectedProjectId === String(project.id)) {
+        setSelectedProjectId("");
+      }
+
+      toast.success("Project deleted");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to delete project.");
+      throw e;
+    }
+  }
+
   const isEmpty = !loading && !error && visibleTasks.length === 0;
 
   return (
@@ -295,6 +338,8 @@ export default function TaskPage() {
         selectedProjectId={selectedProjectId}
         onSelectProject={setSelectedProjectId}
         onCreateProject={handleCreateProject}
+        onUpdateProject={handleUpdateProject}
+        onDeleteProject={handleDeleteProject}
       />
 
       <TaskForm
