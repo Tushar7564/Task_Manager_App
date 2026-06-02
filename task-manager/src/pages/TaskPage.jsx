@@ -5,6 +5,7 @@ import TaskList from "../components/TaskList.jsx";
 import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   getTasks,
   createTask,
@@ -48,6 +49,7 @@ function isOverdue(task) {
 }
 
 export default function TaskPage() {
+  const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -124,8 +126,13 @@ export default function TaskPage() {
   }
 
   useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     load();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     saveUI({ filter, sort });
