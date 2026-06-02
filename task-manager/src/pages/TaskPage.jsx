@@ -6,6 +6,7 @@ import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
+import KanbanBoard from "../components/kanban/KanbanBoard.jsx";
 import {
   getTasks,
   createTask,
@@ -59,6 +60,7 @@ export default function TaskPage() {
   const [deleting, setDeleting] = useState(false);
   const [filter, setFilter] = useState(() => loadUI()?.filter ?? "all");
   const [sort, setSort] = useState(() => loadUI()?.sort ?? "newest");
+  const [viewMode, setViewMode] = useState(() => loadUI()?.viewMode ?? "list");
   const [selectedProjectId, setSelectedProjectId] = useState(
     () => loadUI()?.selectedProjectId ?? "",
   );
@@ -149,8 +151,8 @@ export default function TaskPage() {
   }, []);
 
   useEffect(() => {
-    saveUI({ filter, sort, selectedProjectId });
-  }, [filter, sort, selectedProjectId]);
+    saveUI({ filter, sort, selectedProjectId, viewMode });
+  }, [filter, sort, selectedProjectId, viewMode]);
 
   useEffect(() => {
     if (
@@ -219,6 +221,45 @@ export default function TaskPage() {
         ),
       );
       toast.error(e?.response?.data?.message || "Failed to toggle task.");
+    }
+  }
+
+  async function handleStatusChange(task, nextStatus) {
+    const previousStatus = task.status || "todo";
+    const previousCompleted = task.completed;
+    const nextCompleted = nextStatus === "done";
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id
+          ? { ...t, completed: nextCompleted, status: nextStatus }
+          : t,
+      ),
+    );
+
+    try {
+      const updated = await updateTask(task.id, {
+        title: task.title,
+        description: task.description ?? "",
+        completed: nextCompleted,
+        projectId: task.projectId || "",
+        priority: task.priority || "medium",
+        status: nextStatus,
+        dueDate: task.dueDate || "",
+      });
+
+      setError("");
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? updated : t)));
+      toast.success("Task status updated");
+    } catch (e) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === task.id
+            ? { ...t, completed: previousCompleted, status: previousStatus }
+            : t,
+        ),
+      );
+      toast.error(e?.response?.data?.message || "Failed to update status.");
     }
   }
 
@@ -304,6 +345,8 @@ export default function TaskPage() {
         sort={sort}
         setSort={setSort}
         counts={counts}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {loading && (
@@ -324,7 +367,7 @@ export default function TaskPage() {
         </div>
       )}
 
-      {!loading && !error && visibleTasks.length > 0 && (
+      {!loading && !error && visibleTasks.length > 0 && viewMode === "list" && (
         <TaskList
           tasks={visibleTasks}
           onToggle={handleToggle}
@@ -332,6 +375,19 @@ export default function TaskPage() {
           onEdit={(task) => setEditingTask(task)}
         />
       )}
+
+      {!loading &&
+        !error &&
+        visibleTasks.length > 0 &&
+        viewMode === "kanban" && (
+          <KanbanBoard
+            tasks={visibleTasks}
+            onStatusChange={handleStatusChange}
+            onToggle={handleToggle}
+            onDelete={(task) => setTaskToDelete(task)}
+            onEdit={(task) => setEditingTask(task)}
+          />
+        )}
 
       {editingTask && (
         <EditTaskModal
