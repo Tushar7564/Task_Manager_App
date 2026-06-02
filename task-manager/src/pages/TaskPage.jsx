@@ -6,13 +6,19 @@ import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
 } from "../api/tasksApi";
-import { getProjects, createProject } from "../api/projectsApi";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "../api/projectsApi";
 
 const UI_KEY = "tm_ui_v1";
 
@@ -50,6 +56,7 @@ function isOverdue(task) {
 }
 
 export default function TaskPage() {
+  const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,8 +152,13 @@ export default function TaskPage() {
   }
 
   useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     load();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     saveUI({ filter, sort, selectedProjectId });
@@ -252,6 +264,44 @@ export default function TaskPage() {
     }
   }
 
+  async function handleUpdateProject(id, payload) {
+    try {
+      const updatedProject = await updateProject(id, payload);
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === updatedProject.id ? updatedProject : project,
+        ),
+      );
+      toast.success("Project updated");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to update project.");
+      throw e;
+    }
+  }
+
+  async function handleDeleteProject(project) {
+    try {
+      await deleteProject(project.id);
+      setProjects((prev) => prev.filter((item) => item.id !== project.id));
+      setTasks((prev) =>
+        prev.map((task) =>
+          String(task.projectId) === String(project.id)
+            ? { ...task, projectId: "" }
+            : task,
+        ),
+      );
+
+      if (selectedProjectId === String(project.id)) {
+        setSelectedProjectId("");
+      }
+
+      toast.success("Project deleted");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to delete project.");
+      throw e;
+    }
+  }
+
   const isEmpty = !loading && !error && visibleTasks.length === 0;
 
   return (
@@ -288,6 +338,8 @@ export default function TaskPage() {
         selectedProjectId={selectedProjectId}
         onSelectProject={setSelectedProjectId}
         onCreateProject={handleCreateProject}
+        onUpdateProject={handleUpdateProject}
+        onDeleteProject={handleDeleteProject}
       />
 
       <TaskForm
