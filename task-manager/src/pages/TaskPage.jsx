@@ -6,19 +6,14 @@ import EditTaskModal from "../components/EditTaskModal.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
+import KanbanBoard from "../components/kanban/KanbanBoard.jsx";
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
 } from "../api/tasksApi";
-import {
-  getProjects,
-  createProject,
-  updateProject,
-  deleteProject,
-} from "../api/projectsApi";
+import { getProjects, createProject } from "../api/projectsApi";
 
 const UI_KEY = "tm_ui_v1";
 
@@ -56,7 +51,6 @@ function isOverdue(task) {
 }
 
 export default function TaskPage() {
-  const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +60,7 @@ export default function TaskPage() {
   const [deleting, setDeleting] = useState(false);
   const [filter, setFilter] = useState(() => loadUI()?.filter ?? "all");
   const [sort, setSort] = useState(() => loadUI()?.sort ?? "newest");
+  const [viewMode, setViewMode] = useState(() => loadUI()?.viewMode ?? "list");
   const [selectedProjectId, setSelectedProjectId] = useState(
     () => loadUI()?.selectedProjectId ?? "",
   );
@@ -152,17 +147,12 @@ export default function TaskPage() {
   }
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     load();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    saveUI({ filter, sort, selectedProjectId });
-  }, [filter, sort, selectedProjectId]);
+    saveUI({ filter, sort, selectedProjectId, viewMode });
+  }, [filter, sort, selectedProjectId, viewMode]);
 
   useEffect(() => {
     if (
@@ -234,6 +224,45 @@ export default function TaskPage() {
     }
   }
 
+  async function handleStatusChange(task, nextStatus) {
+    const previousStatus = task.status || "todo";
+    const previousCompleted = task.completed;
+    const nextCompleted = nextStatus === "done";
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id
+          ? { ...t, completed: nextCompleted, status: nextStatus }
+          : t,
+      ),
+    );
+
+    try {
+      const updated = await updateTask(task.id, {
+        title: task.title,
+        description: task.description ?? "",
+        completed: nextCompleted,
+        projectId: task.projectId || "",
+        priority: task.priority || "medium",
+        status: nextStatus,
+        dueDate: task.dueDate || "",
+      });
+
+      setError("");
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? updated : t)));
+      toast.success("Task status updated");
+    } catch (e) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === task.id
+            ? { ...t, completed: previousCompleted, status: previousStatus }
+            : t,
+        ),
+      );
+      toast.error(e?.response?.data?.message || "Failed to update status.");
+    }
+  }
+
   // DELETE
   async function handleDelete(task) {
     if (!task) return;
@@ -260,44 +289,6 @@ export default function TaskPage() {
       toast.success("Project added");
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to add project.");
-      throw e;
-    }
-  }
-
-  async function handleUpdateProject(id, payload) {
-    try {
-      const updatedProject = await updateProject(id, payload);
-      setProjects((prev) =>
-        prev.map((project) =>
-          project.id === updatedProject.id ? updatedProject : project,
-        ),
-      );
-      toast.success("Project updated");
-    } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to update project.");
-      throw e;
-    }
-  }
-
-  async function handleDeleteProject(project) {
-    try {
-      await deleteProject(project.id);
-      setProjects((prev) => prev.filter((item) => item.id !== project.id));
-      setTasks((prev) =>
-        prev.map((task) =>
-          String(task.projectId) === String(project.id)
-            ? { ...task, projectId: "" }
-            : task,
-        ),
-      );
-
-      if (selectedProjectId === String(project.id)) {
-        setSelectedProjectId("");
-      }
-
-      toast.success("Project deleted");
-    } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to delete project.");
       throw e;
     }
   }
@@ -338,8 +329,6 @@ export default function TaskPage() {
         selectedProjectId={selectedProjectId}
         onSelectProject={setSelectedProjectId}
         onCreateProject={handleCreateProject}
-        onUpdateProject={handleUpdateProject}
-        onDeleteProject={handleDeleteProject}
       />
 
       <TaskForm
@@ -356,6 +345,8 @@ export default function TaskPage() {
         sort={sort}
         setSort={setSort}
         counts={counts}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {loading && (
@@ -376,7 +367,7 @@ export default function TaskPage() {
         </div>
       )}
 
-      {!loading && !error && visibleTasks.length > 0 && (
+      {!loading && !error && visibleTasks.length > 0 && viewMode === "list" && (
         <TaskList
           tasks={visibleTasks}
           onToggle={handleToggle}
@@ -384,6 +375,19 @@ export default function TaskPage() {
           onEdit={(task) => setEditingTask(task)}
         />
       )}
+
+      {!loading &&
+        !error &&
+        visibleTasks.length > 0 &&
+        viewMode === "kanban" && (
+          <KanbanBoard
+            tasks={visibleTasks}
+            onStatusChange={handleStatusChange}
+            onToggle={handleToggle}
+            onDelete={(task) => setTaskToDelete(task)}
+            onEdit={(task) => setEditingTask(task)}
+          />
+        )}
 
       {editingTask && (
         <EditTaskModal
