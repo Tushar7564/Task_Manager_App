@@ -17,8 +17,8 @@ export default function KanbanColumn({
   return (
     <section
       ref={setNodeRef}
-      className={`min-h-80 rounded-2xl border border-slate-200 bg-slate-50 p-4 ${
-        isOver ? "ring-2 ring-slate-300" : ""
+      className={`min-h-80 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition ${
+        isOver ? "ring-2 ring-blue-300 bg-blue-50/40" : ""
       }`}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -45,8 +45,8 @@ export default function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-center text-sm text-slate-400">
-              Drop tasks here
+            <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/80 px-4 py-6 text-center text-sm text-slate-400">
+              <span>Drop tasks here</span>
             </div>
           )}
         </div>

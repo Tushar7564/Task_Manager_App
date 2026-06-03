@@ -44,15 +44,16 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">
           Edit Task
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
-            className="w-full rounded-lg border p-2 text-slate-900 placeholder:text-slate-400"
+            aria-label="Task title"
+            className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
@@ -66,13 +67,15 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
           )}
 
           <input
-            className="w-full rounded-lg border p-2 text-slate-900 placeholder:text-slate-400"
+            aria-label="Task description"
+            className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-4">
             <select
-              className="w-full rounded-lg border p-2 text-slate-900"
+              aria-label="Project"
+              className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
             >
@@ -85,7 +88,8 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
             </select>
 
             <select
-              className="w-full rounded-lg border p-2 text-slate-900"
+              aria-label="Priority"
+              className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
@@ -95,7 +99,8 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
             </select>
 
             <select
-              className="w-full rounded-lg border p-2 text-slate-900"
+              aria-label="Status"
+              className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
@@ -105,7 +110,8 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
             </select>
 
             <input
-              className="w-full rounded-lg border p-2 text-slate-900"
+              aria-label="Due date"
+              className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
@@ -115,7 +121,7 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              className="rounded-lg border px-4 py-2 text-slate-900 placeholder:text-slate-400"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
               onClick={onClose}
               disabled={saving}
             >
@@ -124,7 +130,7 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
 
             <button
               type="submit"
-              className="rounded-lg bg-black px-4 py-2 text-white"
+              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:opacity-60"
               disabled={saving}
             >
               {saving ? "Saving..." : "Save"}

@@ -50,6 +50,51 @@ function isOverdue(task) {
   return dueDate < today;
 }
 
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function TaskSkeleton() {
+  return (
+    <div className="mt-4 space-y-3">
+      {[1, 2, 3].map((item) => (
+        <div
+          key={item}
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200" />
+          <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+          <div className="mt-5 flex gap-2">
+            <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100" />
+            <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({ title, message }) {
+  return (
+    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+        —
+      </div>
+      <h2 className="mt-4 text-sm font-semibold text-slate-900">{title}</h2>
+      <p className="mt-1 text-sm text-slate-500">{message}</p>
+    </div>
+  );
+}
+
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -296,32 +341,12 @@ export default function TaskPage() {
   const isEmpty = !loading && !error && visibleTasks.length === 0;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-4 grid gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">Total</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {summaryStats.total}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">Completed</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {summaryStats.completed}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">High Priority</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {summaryStats.highPriority}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">Overdue</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {summaryStats.overdue}
-          </p>
-        </div>
+    <div className="mx-auto w-full max-w-6xl">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total" value={summaryStats.total} />
+        <StatCard label="Completed" value={summaryStats.completed} />
+        <StatCard label="High Priority" value={summaryStats.highPriority} />
+        <StatCard label="Overdue" value={summaryStats.overdue} />
       </div>
 
       <ProjectPanel
@@ -350,21 +375,24 @@ export default function TaskPage() {
       />
 
       {loading && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-          Loading tasks…
-        </div>
+        <TaskSkeleton />
       )}
 
       {!loading && error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {isEmpty && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600">
-          No tasks match your current filter/search.
-        </div>
+        <EmptyState
+          title={tasks.length === 0 ? "No tasks yet" : "No matching tasks"}
+          message={
+            tasks.length === 0
+              ? "Create your first task to start organizing your work."
+              : "Try adjusting your project, filter, or search terms."
+          }
+        />
       )}
 
       {!loading && !error && visibleTasks.length > 0 && viewMode === "list" && (

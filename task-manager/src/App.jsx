@@ -6,11 +6,16 @@ import TaskPage from "./pages/TaskPage.jsx";
 function App() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        toastClassName="rounded-xl border border-slate-200 bg-white text-sm text-slate-800 shadow-xl"
+        progressClassName="bg-blue-600"
+      />
 
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+      <div className="mx-auto w-full max-w-7xl px-0 py-0 sm:px-2 lg:px-4">
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Task Manager
           </h1>
           <p className="mt-2 text-sm text-slate-500">

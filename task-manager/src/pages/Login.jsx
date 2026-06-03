@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -28,6 +29,7 @@ const Login = () => {
     try {
       setLoading(true);
       await login(formData);
+      toast.success("Login successful");
       navigate("/", { replace: true });
     } catch (err) {
       setError(err?.response?.data?.message || "Login failed");
@@ -37,13 +39,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
         <h1 className="text-3xl font-bold text-white">Welcome back</h1>
-        <p className="text-slate-400 mt-2">Login to manage your tasks.</p>
+        <p className="mt-2 text-slate-400">Login to manage your tasks.</p>
 
         {error && (
-          <div className="mt-4 rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-300">
+          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -55,7 +57,7 @@ const Login = () => {
             placeholder="Email address"
             value={formData.email}
             onChange={handleChange}
-            className="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-white outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
             required
           />
 
@@ -65,20 +67,20 @@ const Login = () => {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-white outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
             required
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-3 transition"
+            className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-60"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p className="text-slate-400 text-sm mt-6">
+        <p className="mt-6 text-sm text-slate-400">
           Don&apos;t have an account?{" "}
           <Link to="/register" className="text-blue-400 hover:text-blue-300">
             Create account

@@ -68,7 +68,7 @@ export default function KanbanBoard({
       collisionDetection={closestCorners}
       onDragEnd={handleDragEnd}
     >
-      <div className="mt-4 grid items-start gap-4 xl:grid-cols-3">
+      <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
