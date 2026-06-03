@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { validateProjectPayload } from "../utils/validation";
 
 export default function ProjectPanel({
   projects,
@@ -20,9 +21,10 @@ export default function ProjectPanel({
   async function handleSubmit(e) {
     e.preventDefault();
     const cleanName = name.trim();
+    const validationMessage = validateProjectPayload({ name: cleanName });
 
-    if (!cleanName) {
-      setValidationError("Project name is required.");
+    if (validationMessage) {
+      setValidationError(validationMessage);
       return;
     }
 
@@ -56,9 +58,10 @@ export default function ProjectPanel({
   async function handleUpdate(e) {
     e.preventDefault();
     const cleanName = editName.trim();
+    const validationMessage = validateProjectPayload({ name: cleanName });
 
-    if (!cleanName) {
-      setEditValidationError("Project name is required.");
+    if (validationMessage) {
+      setEditValidationError(validationMessage);
       return;
     }
 

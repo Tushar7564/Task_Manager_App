@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { loginUser, registerUser } from "../api/authApi";
 
 const AuthContext = createContext(null);
@@ -12,6 +12,19 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const isAuthenticated = Boolean(token);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener("auth:expired", handleAuthExpired);
+
+    return () => {
+      window.removeEventListener("auth:expired", handleAuthExpired);
+    };
+  }, []);
 
   const login = async (formData) => {
     const authData = await loginUser(formData);

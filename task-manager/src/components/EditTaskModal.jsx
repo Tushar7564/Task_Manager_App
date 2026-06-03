@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { validateTaskPayload } from "../utils/validation";
 
 export default function EditTaskModal({ task, projects = [], onClose, onSave }) {
   const [title, setTitle] = useState(task.title);
@@ -15,14 +16,13 @@ export default function EditTaskModal({ task, projects = [], onClose, onSave }) 
   async function handleSubmit(e) {
     e.preventDefault();
     const cleanTitle = title.trim();
+    const validationMessage = validateTaskPayload({
+      title: cleanTitle,
+      dueDate,
+    });
 
-    if (!cleanTitle) {
-      setValidationError("Title is required.");
-      return;
-    }
-
-    if (cleanTitle.length < 3) {
-      setValidationError("Title must be at least 3 characters.");
+    if (validationMessage) {
+      setValidationError(validationMessage);
       return;
     }
 

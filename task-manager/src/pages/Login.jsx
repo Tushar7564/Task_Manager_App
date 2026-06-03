@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApiErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { validateLogin } from "../utils/validation";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,6 +17,16 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const authMessage = sessionStorage.getItem("authMessage");
+
+    if (authMessage) {
+      sessionStorage.removeItem("authMessage");
+      setError(authMessage);
+      toast.error(authMessage);
+    }
+  }, []);
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -26,13 +38,23 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
+    const validationMessage = validateLogin(formData);
+
+    if (validationMessage) {
+      setError(validationMessage);
+      toast.error(validationMessage);
+      return;
+    }
+
     try {
       setLoading(true);
       await login(formData);
       toast.success("Login successful");
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err?.response?.data?.message || "Login failed");
+      const message = getApiErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

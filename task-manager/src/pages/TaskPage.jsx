@@ -7,13 +7,19 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal.jsx";
 import ProjectPanel from "../components/ProjectPanel.jsx";
 import TaskToolbar from "../components/tasks/TaskToolbar.jsx";
 import KanbanBoard from "../components/kanban/KanbanBoard.jsx";
+import { getApiErrorMessage } from "../api/axios";
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
 } from "../api/tasksApi";
-import { getProjects, createProject } from "../api/projectsApi";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "../api/projectsApi";
 
 const UI_KEY = "tm_ui_v1";
 
@@ -179,7 +185,7 @@ export default function TaskPage() {
       setTasks(tasksData);
       setProjects(projectsData);
     } catch (e) {
-      const message = e?.response?.data?.message || "Failed to load tasks.";
+      const message = getApiErrorMessage(e);
       setError(message);
 
       if (!loadErrorToastShown.current) {
@@ -217,7 +223,7 @@ export default function TaskPage() {
       setTasks((prev) => [created, ...prev]);
       toast.success("Task added");
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to add task.");
+      toast.error(getApiErrorMessage(e));
       throw e;
     }
   }
@@ -230,7 +236,7 @@ export default function TaskPage() {
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
       toast.success("Task updated");
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to update task.");
+      toast.error(getApiErrorMessage(e));
       throw e;
     }
   }
@@ -265,7 +271,7 @@ export default function TaskPage() {
           t.id === task.id ? { ...t, completed: task.completed } : t,
         ),
       );
-      toast.error(e?.response?.data?.message || "Failed to toggle task.");
+      toast.error(getApiErrorMessage(e));
     }
   }
 
@@ -304,7 +310,7 @@ export default function TaskPage() {
             : t,
         ),
       );
-      toast.error(e?.response?.data?.message || "Failed to update status.");
+      toast.error(getApiErrorMessage(e));
     }
   }
 
@@ -320,7 +326,7 @@ export default function TaskPage() {
       setTaskToDelete(null);
       toast.success("Task deleted");
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to delete task.");
+      toast.error(getApiErrorMessage(e));
     } finally {
       setDeleting(false);
     }
@@ -333,7 +339,45 @@ export default function TaskPage() {
       setSelectedProjectId(String(project.id));
       toast.success("Project added");
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to add project.");
+      toast.error(getApiErrorMessage(e));
+      throw e;
+    }
+  }
+
+  async function handleUpdateProject(id, payload) {
+    try {
+      const updatedProject = await updateProject(id, payload);
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === updatedProject.id ? updatedProject : project,
+        ),
+      );
+      toast.success("Project updated");
+    } catch (e) {
+      toast.error(getApiErrorMessage(e));
+      throw e;
+    }
+  }
+
+  async function handleDeleteProject(project) {
+    try {
+      await deleteProject(project.id);
+      setProjects((prev) => prev.filter((item) => item.id !== project.id));
+      setTasks((prev) =>
+        prev.map((task) =>
+          String(task.projectId) === String(project.id)
+            ? { ...task, projectId: "" }
+            : task,
+        ),
+      );
+
+      if (selectedProjectId === String(project.id)) {
+        setSelectedProjectId("");
+      }
+
+      toast.success("Project deleted");
+    } catch (e) {
+      toast.error(getApiErrorMessage(e));
       throw e;
     }
   }
@@ -354,6 +398,8 @@ export default function TaskPage() {
         selectedProjectId={selectedProjectId}
         onSelectProject={setSelectedProjectId}
         onCreateProject={handleCreateProject}
+        onUpdateProject={handleUpdateProject}
+        onDeleteProject={handleDeleteProject}
       />
 
       <TaskForm

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApiErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { validateRegister } from "../utils/validation";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -27,13 +29,23 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
+    const validationMessage = validateRegister(formData);
+
+    if (validationMessage) {
+      setError(validationMessage);
+      toast.error(validationMessage);
+      return;
+    }
+
     try {
       setLoading(true);
       await register(formData);
       toast.success("Account created");
       navigate("/login");
     } catch (err) {
-      setError(err?.response?.data?.message || "Registration failed");
+      const message = getApiErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
