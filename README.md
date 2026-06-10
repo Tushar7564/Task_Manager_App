@@ -1,189 +1,251 @@
-🚀 **Task Manager – Full Stack CRUD App**
+# TaskFlow - Full Stack Task Manager
 
-A modern, full-stack Task Management application built with React, Express, and PostgreSQL.
-Designed to demonstrate strong frontend fundamentals, clean architecture, and RESTful backend practices.
+TaskFlow is a full-stack SaaS-style task manager built with React, Express, and PostgreSQL. It supports authenticated users, personal tasks, projects, filtering, and a Kanban board with drag and drop.
 
-✨ **Features**
-🔹 **Core Functionality**
+## Features
 
-- Create, Read, Update, Delete tasks (Full CRUD)
-- Mark tasks as completed / undo
-- Edit tasks via modal
-- Confirm delete modal
-- Optimistic UI updates
+- JWT authentication and protected routes
+- Persistent login
+- User-specific tasks
+- Task CRUD
+- Priority, status, and due date fields
+- Projects and project filtering
+- Search, filters, and sort persistence
+- List view and Kanban board view
+- Drag and drop status updates
+- Frontend and backend validation
+- Centralized API error handling
+- Basic backend hardening with Helmet, CORS, rate limiting, and Morgan
+- Responsive SaaS-style dashboard UI
 
-🔹 **Productivity Enhancements**
+## Tech Stack
 
-- Filter: All / Active / Completed
-- Search by title
-- Sort:
-    - Newest
-    - Oldest
-    - Title A–Z
-    - Completed last
-- Task counters per filter
+Frontend:
 
-🔹 **UX Improvements**
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- React Router
+- React Toastify
+- DnD Kit
+- FontAwesome
 
-- Loading state
-- Error handling with toast notifications
-- Empty state handling
-- Persistent UI preferences (filter & sort saved in localStorage)
-- Clean, modern UI with Tailwind CSS
+Backend:
 
-🛠 **Tech Stack**
-**Frontend**
-    - React (Vite)
-    - Tailwind CSS
-    - Axios
-    - React Toastify
+- Node.js
+- Express
+- PostgreSQL
+- pg
+- JWT
+- bcryptjs
+- Zod
+- Helmet
+- express-rate-limit
+- Morgan
 
-**Backend**
-    - Node.js
-    - Express.js
-    - PostgreSQL
-    - pg (node-postgres)
+Database:
 
-📂 **Project Structure**
+- PostgreSQL
+- Recommended deployment: Neon or Supabase
+
+## Folder Structure
+
+```txt
 Task_Manager_App/
-│
-├── TM_Backend/              # Express + PostgreSQL backend
-│   ├── routes/
-│   │   └── tasks.js
-│   ├── db.js
+├── TM_Backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── db/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── validations/
+│   ├── .env.example
 │   ├── index.js
 │   └── package.json
-│
-├── task-manager/            # React frontend (Vite)
+├── task-manager/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
 │   │   ├── api/
-│   │   └── main.jsx
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   └── utils/
+│   ├── .env.example
 │   └── package.json
-│
+├── DEPLOYMENT.md
 └── README.md
+```
 
-⚙️ **Local Setup Instructions**
-1️⃣ **Clone Repository**
+## Local Setup
+
+Clone the repository:
+
+```bash
 git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 cd Task_Manager_App
+```
 
-🗄 **Backend Setup (PostgreSQL + Express)**
-2️⃣ **Create PostgreSQL Database**
+Install backend dependencies:
 
-Open PostgreSQL and run:
+```bash
+cd TM_Backend
+npm install
+```
+
+Install frontend dependencies:
+
+```bash
+cd ../task-manager
+npm install
+```
+
+## Environment Variables
+
+Create `TM_Backend/.env`:
+
+```env
+PORT=8080
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=taskmanager
+
+JWT_SECRET=your_long_random_secret
+JWT_EXPIRES_IN=7d
+```
+
+Create `task-manager/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+For local development, the frontend can also work through the Vite proxy when `VITE_API_BASE_URL` is not set.
+
+## Database Setup
+
+Create the database:
+
+```sql
 CREATE DATABASE taskmanager;
+```
 
-\c taskmanager;
+Run the tables:
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(150) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE tasks (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  completed BOOLEAN DEFAULT FALSE,
+  is_completed BOOLEAN DEFAULT FALSE,
+  priority VARCHAR(20) DEFAULT 'medium',
+  status VARCHAR(30) DEFAULT 'todo',
+  due_date DATE,
+  project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
-3️⃣ **Configure Environment Variables**
+## Run Commands
 
-Create:
+Start backend:
 
-TM_Backend/.env
-PORT=8080
-DB_USER=postgres
-DB_HOST=localhost
-DB_NAME=taskmanager
-DB_PASSWORD=YOUR_PASSWORD
-DB_PORT=5432
-
-4️⃣ **Install & Start Backend**
-
+```bash
 cd TM_Backend
-npm install
-npm run start
+npm run dev
+```
 
 Backend runs at:
+
+```txt
 http://localhost:8080
+```
 
-💻 **Frontend Setup (React + Vite)**
-5️⃣ **Install & Run Frontend**
+Start frontend:
 
+```bash
 cd task-manager
-npm install
 npm run dev
+```
 
 Frontend runs at:
 
+```txt
 http://localhost:5173
+```
 
-Vite proxy forwards /tasks to backend automatically.
+Build frontend:
 
-🔁 API Endpoints
-**Method**	**Endpoint**	**Description**
-GET	        /tasks	        Fetch all tasks
-POST	    /tasks	        Create new task
-PUT	        /tasks/:id	    Update task
-DELETE	    /tasks/:id	    Delete task
+```bash
+cd task-manager
+npm run build
+```
 
-🧠 **Architecture Highlights**
-🔹 **Clean Separation of Concerns**
-- **TaskPage** → Container (state + API)
-- **TaskList** → Presentation
-- **TaskItem** → Pure UI component
-- API calls centralized in **tasksApi.js**
+Preview frontend build:
 
-🔹 **Optimistic Updates**
-UI updates immediately for:
-    - Toggle complete
-    - Delete
-    - Edit
-Rollback handled on failure.
+```bash
+cd task-manager
+npm run preview
+```
 
-🔹 **Derived State Pattern**
-**visibleTasks** is computed from:
-    - tasks
-    - filter
-    - search
-    - sort
-Avoids unnecessary state duplication.
+## Deployment Plan
 
-🎨 **UI Preview**
+- Database: Neon or Supabase PostgreSQL
+- Backend: Render or Railway
+- Frontend: Vercel
 
-### Home Page
-![Home Page](<Screenshot 2026-03-02 at 3.40.44 PM.png>)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step deployment notes.
 
-### Edit Modal
-![edit ui](<Screenshot 2026-03-02 at 3.41.39 PM.png>)
+## Screenshots
 
-### Delete Modal
-![delete ui](<Screenshot 2026-03-02 at 3.43.16 PM.png>)
+Add screenshots here:
 
-🚀 **Possible Future Enhancements**
+- Login page
+- Dashboard list view
+- Kanban board
+- Project filtering
 
-- Authentication (multi-user tasks)
-- Due date + priority
-- Drag-and-drop reordering
-- Deployment (Render + GitHub Pages)
-- Unit testing (Jest / React Testing Library)
+## Live Demo
 
-📌 **Why This Project?**
+Frontend:
 
-This project demonstrates:
-    - Full-stack integration
-    - RESTful API design
-    - Controlled components
-    - State management patterns
-    - UX best practices
-    - Error handling
-    - Clean folder architecture
-    - Production-style code separation
+```txt
+Coming soon
+```
 
-📜 **License**
+Backend health check:
 
-MIT License
+```txt
+Coming soon
+```
 
-👨‍💻 **Author**
+## Author
 
-Built by **Tushar**
-Computer Science Graduate | Full Stack Developer
+Built by Tushar.
